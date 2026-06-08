@@ -1,0 +1,7 @@
+cff-version: "1.2.0"
+date-released: 2026-06
+message: "If you use this software, please cite it using these metadata."
+title: "Flux: State-of-the-Art Machine Learning by Orvex Research"
+url: "https://github.com/Orvex-Research/Flux"
+authors:
+  - name: "Orvex Research"
