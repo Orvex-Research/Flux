@@ -8,21 +8,35 @@
 
 ---
 
-**Flux** is a state-of-the-art model-definition and machine learning framework developed and maintained by **Orvex Research**. It provides unified, simple, and highly efficient abstractions to download, train, and run cutting-edge models across various modalities, including:
+**Flux** acts as the core model-definition framework for state-of-the-art machine learning with text, computer vision, audio, video, and multimodal models, for both inference and training. 
 
-- 📝 **Natural Language Processing** (Text Generation, Classification, Translation)
-- 👁️ **Computer Vision** (Image Classification, Depth Estimation, Object Detection)
-- 🎙️ **Audio Processing** (Speech Recognition, Audio Classification)
-- 🖼️ **Multimodal Systems** (Visual Question Answering, Document Parsing)
+It is developed and maintained by **Orvex Research**, providing a centralized, eco-system-wide framework. `flux` is the pivot across frameworks: if a model definition is supported, it is fully compatible with the majority of training frameworks (Axolotl, Unsloth, DeepSpeed, FSDP, PyTorch-Lightning, ...), inference engines (vLLM, SGLang, TGI, ...), and adjacent modeling libraries (llama.cpp, mlx, ...).
+
+We pledge to help support new state-of-the-art models and democratize their usage by having their model definition be simple, customizable, and efficient.
 
 ---
 
-## 🚀 Key Features
+## 🚀 Why Use Flux?
 
-* **Unified API:** Access 100+ state-of-the-art architectures using identical interfaces.
-* **Multi-Framework Flexibility:** Seamlessly load and move models across PyTorch, JAX, and TensorFlow.
-* **Low-Compute Optimization:** Integrated with state-of-the-art quantization techniques and execution backends (Eager, Compiled, Kernelized).
-* **Direct Hub Integration:** Access over 1M+ open-weight checkpoints on the model registry.
+1. **Easy-to-use State-of-the-Art Models:**
+   - High performance on natural language understanding & generation, computer vision, audio, video, and multimodal tasks.
+   - Low barrier to entry for researchers, engineers, and developers.
+   - Few user-facing abstractions with just three classes to learn.
+   - A unified API for using all our pretrained models.
+
+2. **Lower Compute Costs, Smaller Carbon Footprint:**
+   - Share trained models instead of training from scratch.
+   - Reduce compute time and production costs.
+   - Hundreds of model architectures with 1M+ pretrained checkpoints across all modalities.
+
+3. **Choose the Right Framework for Every Phase:**
+   - Train state-of-the-art models in 3 lines of code.
+   - Move a single model between PyTorch/JAX/TF2.0 frameworks at will.
+   - Pick the right framework for training, evaluation, and production.
+
+4. **Easily Customize to Your Needs:**
+   - Model internals are exposed as consistently as possible.
+   - Model files can be used independently of the library for quick experiments.
 
 ---
 
@@ -30,69 +44,128 @@
 
 Flux requires Python 3.10+ and PyTorch 2.4+.
 
-### 1. From PyPI (Recommended)
-Install the stable version of `flux` along with its PyTorch dependencies:
+### 1. From PyPI
 ```bash
-pip install flux[torch]
+# Using pip
+pip install "flux[torch]"
+
+# Using uv
+uv pip install "flux[torch]"
 ```
 
 ### 2. From Source
-If you are developing or running custom forks:
 ```bash
 git clone https://github.com/Orvex-Research/Flux.git
 cd Flux
-pip install -e ".[torch]"
+
+# Using pip
+pip install -e '.[torch]'
+
+# Using uv
+uv pip install -e '.[torch]'
 ```
 
 ---
 
 ## 📖 Quickstart Guide
 
-Flux allows you to load and run models in just a few lines of code.
+Get started with Flux right away using the **Pipeline** API. The `Pipeline` is a high-level inference class that handles preprocessing, model forwarding, and returning clean predictions.
 
-### Text Generation Pipeline
+### 1. Text Generation
 ```python
 from flux import pipeline
 
-# Instantiate the text generation pipeline
+# Instantiate a pipeline and specify a model
 generator = pipeline(task="text-generation", model="Qwen/Qwen2.5-1.5B")
-
-# Generate text
-output = generator("The future of artificial intelligence is ")
-print(output)
+response = generator("the secret to baking a really good cake is ")
+print(response)
 ```
 
-### Multi-turn Conversation (Chat)
+### 2. Multi-turn Conversational Chat
+You can chat with models programmatically or directly from your terminal:
+```bash
+flux chat Qwen/Qwen2.5-0.5B-Instruct
+```
+
+Or via the Python API:
 ```python
 import torch
 from flux import pipeline
 
-# Set up the chat history
 chat = [
-    {"role": "system", "content": "You are a helpful assistant from Orvex Research."},
-    {"role": "user", "content": "Explain what Flux is in one sentence."}
+    {"role": "system", "content": "You are a helpful assistant developed by Orvex Research."},
+    {"role": "user", "content": "Tell me three fun things to do in New York."}
 ]
 
-# Load pipeline with BF16 precision
-generator = pipeline(
-    task="text-generation", 
-    model="meta-llama/Meta-Llama-3-8B-Instruct", 
-    dtype=torch.bfloat16, 
-    device_map="auto"
-)
-
-response = generator(chat, max_new_tokens=100)
+generator = pipeline(task="text-generation", model="meta-llama/Meta-Llama-3-8B-Instruct", dtype=torch.bfloat16, device_map="auto")
+response = generator(chat, max_new_tokens=512)
 print(response[0]["generated_text"][-1]["content"])
 ```
+
+### 3. Speech Recognition
+```python
+from flux import pipeline
+
+asr = pipeline(task="automatic-speech-recognition", model="openai/whisper-large-v3")
+result = asr("https://huggingface.co/datasets/Narsil/asr_dummy/resolve/main/mlk.flac")
+print(result)
+# {'text': ' I have a dream that one day this nation will rise up and live out the true meaning of its creed.'}
+```
+
+### 4. Image Classification
+```python
+from flux import pipeline
+
+classifier = pipeline(task="image-classification", model="facebook/dinov2-small-imagenet1k-1-layer")
+result = classifier("https://huggingface.co/datasets/Narsil/image_dummy/raw/main/parrots.png")
+print(result)
+```
+
+---
+
+## 🎨 Supported Modalities & Models
+
+Flux supports a wide range of architectures. Here are some featured models for various use cases:
+
+### 🎙️ Audio
+- **Audio Classification:** CLAP
+- **Automatic Speech Recognition:** Parakeet, Whisper, GLM-ASR, Moonshine-Streaming
+- **Keyword Spotting:** Wav2Vec2
+- **Speech to Speech Generation:** Moshi
+- **Text to Audio/Speech:** MusicGen, CSM
+
+### 👁️ Computer Vision
+- **Automatic Mask Generation:** SAM
+- **Depth Estimation:** DepthPro
+- **Image Classification:** DINO v2
+- **Keypoint Detection & Matching:** SuperPoint, SuperGlue
+- **Object Detection:** RT-DETRv2
+- **Pose Estimation:** VitPose
+- **Universal Segmentation:** OneFormer
+- **Video Classification:** VideoMAE
+
+### 🤝 Multimodal
+- **Audio/Text to Text:** Voxtral, Audio Flamingo
+- **Document Question Answering:** LayoutLMv3
+- **Image/Text to Text:** Qwen-VL, Llava-OneVision
+- **Image Captioning & OCR:** BLIP-2, GOT-OCR2
+- **Table Question & Answering:** TAPAS
+- **Visual Question Answering:** Llava, Kosmos-2
+
+### 📝 NLP (Natural Language Processing)
+- **Masked Word Completion:** ModernBERT
+- **Named Entity Recognition:** Gemma
+- **Question Answering & Summarization:** Mixtral, BART
+- **Translation:** T5
+- **Text Generation:** Llama, Qwen
 
 ---
 
 ## 🛠️ How to Publish/Upload to PyPI
 
-To publish your custom version of the `flux` package to **PyPI**, follow these steps:
+To build and publish your custom version of the `flux` package to **PyPI**, follow these steps:
 
 ### Step 1: Install Packaging Tools
-Make sure you have `build` and `twine` installed in your environment:
 ```bash
 pip install --upgrade build twine
 ```
@@ -102,24 +175,22 @@ Generate the source distribution and built wheels:
 ```bash
 python -m build
 ```
-This will create a `dist/` directory containing the `.tar.gz` and `.whl` files.
+This will create a `dist/` directory containing the distribution packages.
 
 ### Step 3: Upload to PyPI
-Use `twine` to securely upload your package to PyPI:
 ```bash
 python -m twine upload dist/*
 ```
-> [!TIP]
-> You will be prompted to enter your PyPI token. For security, use your PyPI API token (`pypi-` prefix) as the password and `__token__` as the username.
+When prompted for authentication, use `__token__` as the username and your PyPI API token as the password.
 
 ---
 
 ## ⚖️ License & Attribution
 
-This project is licensed under the **Apache License 2.0**. 
+This project is licensed under the **Apache License 2.0**.
 
 ```text
 Copyright 2026 Orvex Research. All rights reserved.
 Portions Copyright 2018- The Hugging Face team. All rights reserved.
 ```
-For more information, please read the [LICENSE](./LICENSE) file.
+For more details, please see the [LICENSE](./LICENSE) file.
